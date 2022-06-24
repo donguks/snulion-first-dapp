@@ -68,6 +68,83 @@
         console.error(error);
       };
     }
+
+    const loadPosts = async () => {
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum)
+        const contract = new ethers.Contract("0xe2bBba1B38Ed77542Cf90D3aa4E080eC4cD879a1",
+          [
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "name": "posts",
+              "outputs": [
+                {
+                  "internalType": "address",
+                  "name": "author",
+                  "type": "address"
+                },
+                {
+                  "internalType": "string",
+                  "name": "title",
+                  "type": "string"
+                },
+                {
+                  "internalType": "string",
+                  "name": "content",
+                  "type": "string"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function",
+            },
+            {
+              "inputs": [],
+              "name": "totalPost",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function",
+            }
+          ],
+          provider,
+        )
+
+        const totalPost = await contract.totalPost();
+        const postContainer = document.getElementById("PostContainer");
+
+        let posts = ""
+
+        for (let i = 0; i < totalPost.toNumber(); i++) {
+          const post = await contract.posts(i)
+          posts += `
+            <div id="post-{{ post.id }}" class="card post-container" style="width: 18rem;">
+              <div class="card-body">
+                <h5 class="card-title post-container-title"> ${post.title} </h5>
+                <h6 class="card-subtitle mb-2 text-muted">작성자 : ${post.author} </h6>
+                <p class="card-text"> ${post.content} </p>
+              </div>
+            </div>
+          `
+        }
+
+         postContainer.innerHTML = posts
+      } catch (error) {
+        console.error(error);
+      };
+    }
+
+    loadPosts()
   </script>
 </head>
 
@@ -78,30 +155,16 @@
       <div class="" id="avbarNavDropdown">
         <ul class="navbar-nav" id="NavBar">
           <li class="nav-item">
-            <button class="nav-link active" aria-current="page" onclick="onClickConnect()" id="ConnectWalletButton">Connect Wallet</button>
+            <button class="nav-link active" aria-current="page" onclick="onClickConnect()"
+              id="ConnectWalletButton">Connect Wallet</button>
           </li>
         </ul>
       </div>
     </div>
   </nav>
   <main>
-    <div class="posts-container">
-      <div id="post-{{ post.id }}" class="card post-container" style="width: 18rem;">
-        <div class="card-body">
-          <h5 class="card-title post-container-title"> 안녕하세요 </h5>
-          <h6 class="card-subtitle mb-2 text-muted">작성자 : 서동욱</h6>
-          <p class="card-text"> 처음 만나는 Dapp </p>
-        </div>
-      </div>
-      <div id="post-{{ post.id }}" class="card post-container" style="width: 18rem;">
-        <div class="card-body">
-          <h5 class="card-title post-container-title"> 안녕하세요 </h5>
-          <h6 class="card-subtitle mb-2 text-muted">작성자 : 이현민</h6>
-          <p class="card-text"> 반갑습니다 :) 멋사 4기 이현민입니다. </p>
-        </div>
-      </div>
+    <div class="posts-container" id="PostContainer">
     </div>
-
     <div>
       <h1>new post</h1>
       <form onsubmit="onClickSubmit(); return false">
